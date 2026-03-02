@@ -335,9 +335,9 @@ void GreeACCNT::send_params_set_packet()
         static const struct { const char* const opt; uint8_t byte4; uint8_t byte18; } FAN_MAP[] = {
             {fan_modes::FAN_MIN,  1, 0x09},
             {fan_modes::FAN_LOW,  2, 0x0A},
-            {fan_modes::FAN_MED,  2, 0x0B},
-            {fan_modes::FAN_HIGH, 3, 0x0C},
-            {fan_modes::FAN_MAX,  3, 0x0D},
+            {fan_modes::FAN_MED,  3, 0x0B},
+            {fan_modes::FAN_HIGH, 4, 0x0C},
+            {fan_modes::FAN_MAX,  5, 0x0D},
         };
 
         for (const auto& mapping : FAN_MAP) {
