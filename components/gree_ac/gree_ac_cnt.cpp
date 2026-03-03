@@ -54,10 +54,7 @@ void GreeACCNT::loop()
                 Component::status_clear_error();
             }
 
-            if (this->update_ == ACUpdate::NoUpdate)
-            {
-                handle_packet(); /* this will update state of components in HA as well as internal settings */
-            }
+            handle_packet(); /* this will update state of components in HA as well as internal settings */
             yield();
         }
 
@@ -620,6 +617,10 @@ void GreeACCNT::handle_packet()
 {
     if (this->serialProcess_.data[3] == protocol::CMD_IN_UNIT_REPORT)
     {
+        if (this->update_ != ACUpdate::NoUpdate) {
+            return;
+        }
+
         /* Move payload to front of data array to simplify indexing (remove 4 byte header) */
         size_t payload_size = this->serialProcess_.size - 5;
         memmove(this->serialProcess_.data, &this->serialProcess_.data[4], payload_size);
@@ -648,6 +649,8 @@ void GreeACCNT::handle_packet()
         char buf[32];
         snprintf(buf, sizeof(buf), "%d%02d%02d", b1, b2, b3);
         std::string model_id = buf;
+
+        ESP_LOGI(TAG, "Received Model ID: %s", model_id.c_str());
 
         if (this->model_id_text_sensor_ != nullptr && this->model_id_text_sensor_->state != model_id) {
             this->model_id_text_sensor_->publish_state(model_id);

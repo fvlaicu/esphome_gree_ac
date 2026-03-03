@@ -114,10 +114,7 @@ SCHEMA = climate.climate_schema(climate.Climate).extend(
         cv.GenerateID(CONF_ENABLE_TX_SWITCH): cv.declare_id(GreeACSwitch),
         cv.GenerateID(CONF_DUMP_PACKETS_SWITCH): cv.declare_id(GreeACSwitch),
         cv.GenerateID(CONF_QUIET_SELECT): cv.declare_id(GreeACSelect),
-        cv.Optional(CONF_MODEL_ID_TEXT_SENSOR): text_sensor.text_sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
-            icon="mdi:information-outline",
-        ),
+        cv.GenerateID(CONF_MODEL_ID_TEXT_SENSOR): cv.declare_id(text_sensor.TextSensor),
     }
 ).extend(uart.UART_DEVICE_SCHEMA)
 
@@ -215,7 +212,11 @@ async def to_code(config):
         await cg.register_component(sw_var, sw_conf)
         cg.add(getattr(var, setter)(sw_var))
 
-    if CONF_MODEL_ID_TEXT_SENSOR in config:
-        conf = config[CONF_MODEL_ID_TEXT_SENSOR]
-        ts_var = await text_sensor.new_text_sensor(conf)
-        cg.add(var.set_model_id_text_sensor(ts_var))
+    ts_id = config[CONF_MODEL_ID_TEXT_SENSOR]
+    ts_conf = text_sensor.text_sensor_schema(
+        entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        icon="mdi:information-outline",
+    ).validate({CONF_ID: ts_id, CONF_NAME: "Model ID"})
+    ts_var = await text_sensor.new_text_sensor(ts_conf)
+    await cg.register_component(ts_var, ts_conf)
+    cg.add(var.set_model_id_text_sensor(ts_var))
