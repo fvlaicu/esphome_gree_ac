@@ -352,8 +352,8 @@ void GreeACCNT::send_params_set_packet()
         }
     }
 
-    payload[protocol::REPORT_FAN_SPD2_BYTE] |= (fan_mode_byte4 << protocol::REPORT_FAN_SPD2_POS);
-    payload[protocol::REPORT_FAN_SPD1_BYTE] |= (fan_mode_byte18 << protocol::REPORT_FAN_SPD1_POS);
+    payload[protocol::REPORT_FAN_SPD2_BYTE] |= fan_mode_byte4;
+    payload[protocol::REPORT_FAN_SPD1_BYTE] |= fan_mode_byte18;
 
     if (this->turbo_state_)
     {
