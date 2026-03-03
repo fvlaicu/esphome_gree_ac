@@ -325,32 +325,39 @@ void GreeACCNT::send_params_set_packet()
     payload[protocol::REPORT_TEMP_SET_BYTE] |= ((target_temperature - protocol::REPORT_TEMP_SET_OFF) << protocol::REPORT_TEMP_SET_POS) & protocol::REPORT_TEMP_SET_MASK;
 
     /* FAN SPEED --------------------------------------------------------------------------- */
-    /* below will default to AUTO */
-    if (this->has_custom_fan_mode())
-    {
+    uint8_t fan_mode_payload4 = 0;
+    uint8_t fan_mode_payload18 = 0x00; // Auto
+
+    if (this->has_custom_fan_mode()) {
         const auto custom_fan_mode = this->get_custom_fan_mode();
-        uint8_t fan_mode_byte4 = 0;
-        uint8_t fan_mode_byte18 = 0x08; // Auto
 
-        static const struct { const char* const opt; uint8_t byte4; uint8_t byte18; } FAN_MAP[] = {
-            {fan_modes::FAN_MIN,  1, 0x09},
-            {fan_modes::FAN_LOW,  2, 0x0A},
-            {fan_modes::FAN_MED,  2, 0x0B},
-            {fan_modes::FAN_HIGH, 3, 0x0C},
-            {fan_modes::FAN_MAX,  3, 0x0D},
-        };
-
-        for (const auto& mapping : FAN_MAP) {
-            if (custom_fan_mode == mapping.opt) {
-                fan_mode_byte4 = mapping.byte4;
-                fan_mode_byte18 = mapping.byte18;
-                break;
-            }
+        if (custom_fan_mode == fan_modes::FAN_MIN) {
+            fan_mode_payload4 = 1;
+            fan_mode_payload18 = 0x01;
+        } else if (custom_fan_mode == fan_modes::FAN_LOW) {
+            fan_mode_payload4 = 2;
+            fan_mode_payload18 = 0x02;
+        } else if (custom_fan_mode == fan_modes::FAN_MED) {
+            fan_mode_payload4 = 2;
+            fan_mode_payload18 = 0x03;
+        } else if (custom_fan_mode == fan_modes::FAN_HIGH) {
+            fan_mode_payload4 = 3;
+            fan_mode_payload18 = 0x04;
+        } else if (custom_fan_mode == fan_modes::FAN_MAX) {
+            fan_mode_payload4 = 3;
+            fan_mode_payload18 = 0x05;
+        } else if (custom_fan_mode == fan_modes::FAN_AUTO) {
+            fan_mode_payload4 = 0;
+            fan_mode_payload18 = 0x00;
         }
-
-        payload[protocol::REPORT_FAN_SPD2_BYTE] |= (fan_mode_byte4 << protocol::REPORT_FAN_SPD2_POS);
-        payload[protocol::REPORT_FAN_SPD1_BYTE] |= (fan_mode_byte18 << protocol::REPORT_FAN_SPD1_POS);
     }
+
+    // Clear old fan bits before setting new ones
+    payload[protocol::REPORT_FAN_SPD2_BYTE] &= ~protocol::REPORT_FAN_SPD2_MASK;
+    payload[protocol::REPORT_FAN_SPD2_BYTE] |= (fan_mode_payload4 & protocol::REPORT_FAN_SPD2_MASK);
+
+    payload[protocol::REPORT_FAN_SPD1_BYTE] &= ~protocol::REPORT_FAN_SPD1_MASK;
+    payload[protocol::REPORT_FAN_SPD1_BYTE] |= (fan_mode_payload18 & protocol::REPORT_FAN_SPD1_MASK);
 
     if (this->turbo_state_)
     {
@@ -799,23 +806,25 @@ climate::ClimateMode GreeACCNT::determine_mode()
 const char* GreeACCNT::determine_fan_mode()
 {
     /* fan setting has quite complex representation in the packet, brace for it */
-    uint8_t fan_mode = (this->serialProcess_.data[protocol::REPORT_FAN_SPD1_BYTE] & protocol::REPORT_FAN_SPD1_MASK);
+    uint8_t fan_mode = (this->serialProcess_.data[protocol::REPORT_FAN_SPD1_BYTE] & protocol::REPORT_FAN_MODE_MASK);
 
-    static const struct { uint8_t val; const char* const opt; } FAN_MAP[] = {
-        {0x08, fan_modes::FAN_AUTO},
-        {0x09, fan_modes::FAN_MIN},
-        {0x0A, fan_modes::FAN_LOW},
-        {0x0B, fan_modes::FAN_MED},
-        {0x0C, fan_modes::FAN_HIGH},
-        {0x0D, fan_modes::FAN_MAX},
-    };
-
-    for (const auto& mapping : FAN_MAP) {
-        if (fan_mode == mapping.val) return mapping.opt;
+    switch (fan_mode) {
+        case 0x01:
+            return fan_modes::FAN_MIN;
+        case 0x02:
+            return fan_modes::FAN_LOW;
+        case 0x03:
+            return fan_modes::FAN_MED;
+        case 0x04:
+            return fan_modes::FAN_HIGH;
+        case 0x05:
+            return fan_modes::FAN_MAX;
+        case 0x00:
+            return fan_modes::FAN_AUTO;
+        default:
+            ESP_LOGW(TAG, "Received unknown fan mode: %d", fan_mode);
+            return fan_modes::FAN_AUTO;
     }
-
-    ESP_LOGW(TAG, "Received unknown fan mode: %d", fan_mode);
-    return fan_modes::FAN_AUTO;
 }
 
 const char* GreeACCNT::determine_vertical_swing()
