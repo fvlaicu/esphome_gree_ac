@@ -177,6 +177,7 @@ class GreeAC : public Component, public uart::UARTDevice, public climate::Climat
         bool update_display(const std::string &display);
         bool update_display_unit(const std::string &display_unit);
 
+        bool update_fan_mode(const std::string &fan_mode);
         bool update_light(bool light);
         bool update_ionizer(bool ionizer);
         bool update_beeper(bool beeper);

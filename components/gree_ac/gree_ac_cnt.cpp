@@ -685,13 +685,7 @@ bool GreeACCNT::processUnitReport()
             }
         }
     }
-
-    const char* newFanMode = determine_fan_mode();
-    if (!this->has_custom_fan_mode() || this->get_custom_fan_mode() != newFanMode) {
-        this->set_custom_fan_mode_(newFanMode);
-        hasChanged = true;
-    }
-    
+   
     uint8_t temset = (this->serialProcess_.data[protocol::REPORT_TEMP_SET_BYTE] & protocol::REPORT_TEMP_SET_MASK) >> protocol::REPORT_TEMP_SET_POS;
     hasChanged |= this->update_target_temperature((float)(temset + protocol::REPORT_TEMP_SET_OFF));
     hasChanged |= this->update_current_temperature((float)(this->serialProcess_.data[protocol::REPORT_TEMP_ACT_BYTE] - protocol::REPORT_TEMP_ACT_OFF));
@@ -777,6 +771,7 @@ bool GreeACCNT::processUnitReport()
     hasChanged |= this->update_turbo(determine_turbo());
     hasChanged |= this->update_ifeel(determine_ifeel());
     hasChanged |= this->update_quiet(determine_quiet());
+    hasChanged |= this->update_fan_mode(determine_fan_mode());
 
     return hasChanged;
 }
