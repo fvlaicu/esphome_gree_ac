@@ -330,32 +330,32 @@ void GreeACCNT::send_params_set_packet()
         const auto custom_fan_mode = this->get_custom_fan_mode();
 
         if (custom_fan_mode == fan_modes::FAN_MIN) {
-            fan_mode_payload4 = 1;
+            fan_mode_payload4 = 0x1;
             fan_mode_payload18 = 0x01;
         } else if (custom_fan_mode == fan_modes::FAN_LOW) {
-            fan_mode_payload4 = 2;
+            fan_mode_payload4 = 0x2;
             fan_mode_payload18 = 0x02;
         } else if (custom_fan_mode == fan_modes::FAN_MED) {
-            fan_mode_payload4 = 2;
+            fan_mode_payload4 = 0x02;
             fan_mode_payload18 = 0x03;
         } else if (custom_fan_mode == fan_modes::FAN_HIGH) {
-            fan_mode_payload4 = 3;
+            fan_mode_payload4 = 0x03;
             fan_mode_payload18 = 0x04;
         } else if (custom_fan_mode == fan_modes::FAN_MAX) {
-            fan_mode_payload4 = 3;
+            fan_mode_payload4 = 0x03;
             fan_mode_payload18 = 0x05;
         } else if (custom_fan_mode == fan_modes::FAN_AUTO) {
-            fan_mode_payload4 = 0;
+            fan_mode_payload4 = 0x00;
             fan_mode_payload18 = 0x00;
         }
     }
 
     // Clear old fan bits before setting new ones
-    payload[protocol::REPORT_FAN_SPD2_BYTE] &= ~protocol::REPORT_FAN_SPD2_MASK;
-    payload[protocol::REPORT_FAN_SPD2_BYTE] |= (fan_mode_payload4 & protocol::REPORT_FAN_SPD2_MASK);
-
     payload[protocol::REPORT_FAN_SPD1_BYTE] &= ~protocol::REPORT_FAN_SPD1_MASK;
     payload[protocol::REPORT_FAN_SPD1_BYTE] |= (fan_mode_payload18 & protocol::REPORT_FAN_SPD1_MASK);
+
+    payload[protocol::REPORT_FAN_SPD2_BYTE] &= ~protocol::REPORT_FAN_SPD2_MASK;
+    payload[protocol::REPORT_FAN_SPD2_BYTE] |= (fan_mode_payload4 & protocol::REPORT_FAN_SPD2_MASK);
 
     if (this->turbo_state_)
     {
@@ -823,7 +823,7 @@ climate::ClimateMode GreeACCNT::determine_mode()
 const char* GreeACCNT::determine_fan_mode()
 {
     /* fan setting has quite complex representation in the packet, brace for it */
-    uint8_t fan_mode = (this->serialProcess_.data[protocol::REPORT_FAN_SPD1_BYTE] & protocol::REPORT_FAN_MODE_MASK);
+    uint8_t fan_mode = (this->serialProcess_.data[protocol::REPORT_FAN_SPD1_BYTE] & protocol::REPORT_FAN_SPD1_MASK);
 
     switch (fan_mode) {
         case 0x01:

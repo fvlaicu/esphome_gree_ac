@@ -47,7 +47,7 @@ namespace protocol {
     static const uint8_t REPORT_MODE_HEAT          = 4;
 
     static const uint8_t REPORT_FAN_SPD1_BYTE  = 18;
-    static const uint8_t REPORT_FAN_SPD1_MASK  = 0b00001111;
+    static const uint8_t REPORT_FAN_SPD1_MASK  = 0b00000111; //0b00001111;
     static const uint8_t REPORT_FAN_SPD2_BYTE  = 4;
     static const uint8_t REPORT_FAN_SPD2_MASK  = 0b00000111;
     static const uint8_t REPORT_FAN_MODE_MASK  = 0b00000111;
