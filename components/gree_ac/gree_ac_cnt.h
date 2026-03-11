@@ -40,11 +40,11 @@ namespace protocol {
     static const uint8_t REPORT_MODE_BYTE      = 4;
     static const uint8_t REPORT_MODE_MASK      = 0b01110000;
     static const uint8_t REPORT_MODE_POS       = 4;
-    static const uint8_t REPORT_MODE_AUTO          = 0;
-    static const uint8_t REPORT_MODE_COOL          = 1;
-    static const uint8_t REPORT_MODE_DRY           = 2;
-    static const uint8_t REPORT_MODE_FAN           = 3;
-    static const uint8_t REPORT_MODE_HEAT          = 4;
+    static const uint8_t REPORT_MODE_AUTO      = 0;
+    static const uint8_t REPORT_MODE_COOL      = 1;
+    static const uint8_t REPORT_MODE_DRY       = 2;
+    static const uint8_t REPORT_MODE_FAN       = 3;
+    static const uint8_t REPORT_MODE_HEAT      = 4;
 
     static const uint8_t REPORT_FAN_SPD1_BYTE  = 18;
     static const uint8_t REPORT_FAN_SPD1_MASK  = 0b00000111; //0b00001111;

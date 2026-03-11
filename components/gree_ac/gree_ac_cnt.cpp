@@ -318,13 +318,13 @@ void GreeACCNT::send_params_set_packet()
         payload[protocol::REPORT_PWR_BYTE] |= protocol::REPORT_PWR_MASK;
     }
 
-    /* TARGET TEMPERATURE --------------------------------------------------------------------------- */
+    // TARGET TEMPERATURE
     uint8_t target_temperature = static_cast<uint8_t>(round(this->target_temperature));
     payload[protocol::REPORT_TEMP_SET_BYTE] |= ((target_temperature - protocol::REPORT_TEMP_SET_OFF) << protocol::REPORT_TEMP_SET_POS) & protocol::REPORT_TEMP_SET_MASK;
 
-    /* FAN SPEED --------------------------------------------------------------------------- */
-    uint8_t fan_mode_payload4 = 0;
-    uint8_t fan_mode_payload18 = 0x00; // Auto
+    // FAN STATE
+    uint8_t fan_mode_payload4 = 0x00;
+    uint8_t fan_mode_payload18 = 0x00;
 
     if (this->has_custom_fan_mode()) {
         const auto custom_fan_mode = this->get_custom_fan_mode();
@@ -350,18 +350,20 @@ void GreeACCNT::send_params_set_packet()
         }
     }
 
-    // Clear old fan bits before setting new ones
-    payload[protocol::REPORT_FAN_SPD1_BYTE] &= ~protocol::REPORT_FAN_SPD1_MASK;
+    payload[protocol::REPORT_FAN_SPD1_BYTE] = 0;
     payload[protocol::REPORT_FAN_SPD1_BYTE] |= (fan_mode_payload18 & protocol::REPORT_FAN_SPD1_MASK);
 
+    // Clear the bits for fan speed 2 and set them according to the desired fan mode
     payload[protocol::REPORT_FAN_SPD2_BYTE] &= ~protocol::REPORT_FAN_SPD2_MASK;
     payload[protocol::REPORT_FAN_SPD2_BYTE] |= (fan_mode_payload4 & protocol::REPORT_FAN_SPD2_MASK);
 
+    // TURBO STATE
     if (this->turbo_state_)
     {
         payload[protocol::REPORT_FAN_TURBO_BYTE] |= protocol::REPORT_FAN_TURBO_MASK;
     }
 
+    // QUIET STATE
     if (this->quiet_state_ == quiet_options::ON)
     {
         payload[protocol::REPORT_FAN_QUIET_BYTE] |= protocol::REPORT_FAN_QUIET_MASK;
@@ -371,7 +373,7 @@ void GreeACCNT::send_params_set_packet()
         payload[protocol::REPORT_FAN_QUIET_BYTE] |= protocol::REPORT_FAN_QUIET_AUTO_MASK;
     }
 
-    /* VERTICAL SWING --------------------------------------------------------------------------- */
+    // VERTICAL SWING
     static const struct { const char* const opt; uint8_t val; } VSWING_MAP[] = {
         {vertical_swing_options::OFF,   protocol::REPORT_VSWING_OFF},
         {vertical_swing_options::FULL,  protocol::REPORT_VSWING_FULL},
@@ -386,6 +388,7 @@ void GreeACCNT::send_params_set_packet()
         {vertical_swing_options::CMIDU, protocol::REPORT_VSWING_CMIDU},
         {vertical_swing_options::CUP,   protocol::REPORT_VSWING_CUP},
     };
+
     uint8_t mode_vertical_swing = protocol::REPORT_VSWING_OFF;
     for (const auto& mapping : VSWING_MAP) {
         if (this->vertical_swing_state_ == mapping.opt) {
@@ -393,9 +396,10 @@ void GreeACCNT::send_params_set_packet()
             break;
         }
     }
+
     payload[protocol::REPORT_VSWING_BYTE] |= (mode_vertical_swing << protocol::REPORT_VSWING_POS);
 
-    /* HORIZONTAL SWING --------------------------------------------------------------------------- */
+    // HORIZONTAL SWING
     static const struct { const char* const opt; uint8_t val; } HSWING_MAP[] = {
         {horizontal_swing_options::OFF,    protocol::REPORT_HSWING_OFF},
         {horizontal_swing_options::FULL,   protocol::REPORT_HSWING_FULL},
@@ -405,6 +409,7 @@ void GreeACCNT::send_params_set_packet()
         {horizontal_swing_options::CMIDR,  protocol::REPORT_HSWING_CMIDR},
         {horizontal_swing_options::CRIGHT, protocol::REPORT_HSWING_CRIGHT},
     };
+
     uint8_t mode_horizontal_swing = protocol::REPORT_HSWING_OFF;
     for (const auto& mapping : HSWING_MAP) {
         if (this->horizontal_swing_state_ == mapping.opt) {
