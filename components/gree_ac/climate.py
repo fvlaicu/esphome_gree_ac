@@ -34,6 +34,7 @@ CONF_DISPLAY_SELECT             = "display_select"
 CONF_DISPLAY_UNIT_SELECT        = "display_unit_select"
 CONF_LIGHT_SELECT               = "light_select"
 
+CONF_LIGHT_SELECT_ID            = "light_select_id"
 CONF_IONIZER_SWITCH             = "ionizer_switch"
 CONF_BEEPER_SWITCH              = "beeper_switch"
 CONF_SLEEP_SWITCH               = "sleep_switch"
@@ -104,6 +105,7 @@ SCHEMA = climate.climate_schema(climate.Climate).extend(
         cv.GenerateID(CONF_DISPLAY_SELECT): cv.declare_id(GreeACSelect),
         cv.GenerateID(CONF_DISPLAY_UNIT_SELECT): cv.declare_id(GreeACSelect),
         cv.GenerateID(CONF_LIGHT_SELECT): cv.declare_id(GreeACSelect),
+        cv.Optional(CONF_LIGHT_SELECT_ID): cv.use_id(GreeACSelect),
         cv.GenerateID(CONF_IONIZER_SWITCH): cv.declare_id(GreeACSwitch),
         cv.GenerateID(CONF_BEEPER_SWITCH): cv.declare_id(GreeACSwitch),
         cv.GenerateID(CONF_SLEEP_SWITCH): cv.declare_id(GreeACSwitch),
@@ -179,6 +181,9 @@ async def to_code(config):
     ]
     for conf_key, name, options, setter, icon in selects:
         sel_id = config[conf_key]
+        # Special handling for Light select: allow user to provide explicit ID
+        if conf_key == CONF_LIGHT_SELECT and CONF_LIGHT_SELECT_ID in config:
+            sel_id = config[CONF_LIGHT_SELECT_ID]
         sel_conf = select.select_schema(GreeACSelect)(
             {CONF_ID: sel_id, CONF_NAME: name, CONF_ICON: icon}
         )
